@@ -10,14 +10,13 @@ from __future__ import print_function
 import numpy as np
 from scipy.stats import norm
 
-from .gaussian_process.gaussian_process import GaussianProcess
+from .gaussian_process import GaussianProcessRegressor
 from .cross_validation import check_cv
 from .cross_validation import _fit_and_score
 from .metrics.scorer import check_scoring
 from .base import is_classifier, clone
+from .grid_search import BaseSearchCV
 
-
-#   UTILS    #
 
 def sample_candidates(n_candidates, param_bounds, param_isInt):
 
@@ -25,7 +24,7 @@ def sample_candidates(n_candidates, param_bounds, param_isInt):
     candidates = []
 
     for k in range(n_parameters):
-        if(param_isInt[k]):
+        if param_isInt[k]:
             k_sample = np.asarray(
                 np.random.rand(n_candidates)
                 * np.float(param_bounds[k][1]-param_bounds[k][0])
@@ -75,7 +74,7 @@ def is_in_ndarray(item, a):
     idxk = range(a.shape[0])
     while(k < a.shape[1]):
         idxk = (a[idxk, k] == item[k])
-        if(np.sum(idxk > 0)):
+        if np.sum(idxk > 0):
             k += 1
             idx_val = idx_val[idxk]
             idxk = list(idx_val)
@@ -85,8 +84,7 @@ def is_in_ndarray(item, a):
     return True, idx_val[0]
 
 
-#    GPSearchCV    #
-class GPSearchCV(object):
+class GPSearchCV(BaseSearchCV):
     """
     Parameters
     ----------
@@ -109,14 +107,6 @@ class GPSearchCV(object):
         parameters. The returned value should be a list of one or more
         floats if score_format == 'cv', and a float if score_format ==
         'avg'
-
-    X : array-like, shape = [n_samples, n_features]
-        Training vector, where n_samples in the number of samples and
-        n_features is the number of features.
-
-    y : array-like, shape = [n_samples] or [n_samples, n_output], optional
-        Target relative to X for classification or regression;
-        None for unsupervised learning.
 
     fit_params : dict, optional
         Parameters to pass to the fit method.
@@ -167,7 +157,7 @@ class GPSearchCV(object):
     Attributes
     ----------
 
-    best_parameter_ : dict, the parameter set, from those tested by the
+    best_params_ : dict, the parameter set, from those tested by the
         method _fit, that maximizes the mean of the cross-validation results.
 
     tested_parameters_ : ndarray, the parameters tested by _fit
@@ -196,89 +186,84 @@ class GPSearchCV(object):
     """
 
     def __init__(self,
-                 parameters,
                  estimator,
+                 parameters,
                  scoring=None,
-                 X=None, y=None,
                  fit_params=None,
-                 refit=True,
                  cv=None,
                  acquisition_function='UCB',
-                 n_iter=100,
+                 refit=True,
                  n_init=10,
+                 n_iter=20,
                  n_candidates=500,
-                 gp_nugget=1.e-10,
-                 verbose=True):
+                 gp_params={},
+                 verbose=0):
 
+        self.estimator = estimator
         self.parameters = parameters
         self.n_parameters = len(parameters)
+        self.scoring = scoring
         self.acquisition_function = acquisition_function
         self.n_iter = n_iter
         self.n_init = n_init
+        self.refit = refit
         self.n_candidates = n_candidates
-        self.param_names = parameters.keys()
-        self.param_isInt = np.array([0 if (parameters[k][0] == 'float')
+        self.gp_params = gp_params
+        self.param_names = list(parameters.keys())
+        self.param_is_int = np.array([0 if (parameters[k][0] == 'float')
                                      else 1 for k in self.param_names])
         self.param_bounds = np.zeros((self.n_parameters, 2))
-        self.gp_nugget = gp_nugget
         self.verbose = verbose
-        self.scoring = scoring
-        self.estimator = estimator
         self.fit_params = fit_params if fit_params is not None else {}
         self.cv = cv
-        self.X = X
-        self.y = y
 
-        self.best_parameter_ = None
+        self.best_params_ = None
         self.tested_parameters_ = None
         self.cv_scores_ = None
 
-        if(callable(estimator)):
+        if callable(estimator):
             self._callable_estimator = True
-            if(verbose):
+            if self.verbose > 0:
                 print('Estimator is a callable and not an sklearn Estimator')
         else:
             self._callable_estimator = False
 
-        if not self._callable_estimator:
-            self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
-
         # init param_bounds
         for i in range(self.n_parameters):
-            if(parameters[self.param_names[i]][0] == 'cat'):
+            if parameters[self.param_names[i]][0] == 'cat':
                 self.param_bounds[i, 0] = 0
                 self.param_bounds[i, 1] = \
                     len(parameters[self.param_names[i]][1])
             else:
                 self.param_bounds[i] = \
                     np.array(parameters[self.param_names[i]][1])
-                if(parameters[self.param_names[i]][0] == 'int'):
+                if parameters[self.param_names[i]][0] == 'int':
                     self.param_bounds[i, 1] += 1
 
-        if(self.verbose):
+        if self.verbose > 0:
             print(self.parameters)
             print(self.param_names)
-            print(self.param_isInt)
+            print(self.param_is_int)
             print(self.param_bounds)
 
-    def vector_to_dict(self, vector_parameter):
+    def _vector_to_dict(self, vector_parameter):
         dict_parameter = dict.fromkeys(self.param_names)
         for i in range(self.n_parameters):
-            if(self.parameters[self.param_names[i]][0] == 'cat'):
+            if self.parameters[self.param_names[i]][0] == 'cat':
                 dict_parameter[self.param_names[i]] = \
                     (self.parameters[self.param_names[i]][1])[
                         int(vector_parameter[i])]
-            elif(self.parameters[self.param_names[i]][0] == 'int'):
+            elif self.parameters[self.param_names[i]][0] == 'int':
                 dict_parameter[self.param_names[i]] = int(vector_parameter[i])
             else:
                 dict_parameter[self.param_names[i]] = vector_parameter[i]
 
         return dict_parameter
 
-    def score(self, test_parameter):
+    def _evaluate_params(self, X, y, params):
         """
         The score function to call in order to evaluate the quality
-        of the parameter test_parameter
+        of the parameter params
 
         Parameters
         ----------
@@ -290,12 +275,13 @@ class GPSearchCV(object):
         """
 
         if not self._callable_estimator:
-            cv = check_cv(self.cv, self.X, self.y,
+            cv = check_cv(self.cv, X, y,
                           classifier=is_classifier(self.estimator))
             cv_score = [_fit_and_score(
-                clone(self.estimator), self.X, self.y, self.scorer_,
-                train, test, False, test_parameter,
-                self.fit_params, return_parameters=True)
+                clone(self.estimator), X, y, self.scorer_,
+                train, test, False, params,
+                self.fit_params, return_parameters=True,
+                error_score='raise')
                 for train, test in cv]
 
             n_test_samples = 0
@@ -307,13 +293,23 @@ class GPSearchCV(object):
             score /= float(n_test_samples)
 
         else:
-            score = self.estimator(test_parameter)
+            score = self.estimator(params)
 
         return score
 
-    def _fit(self):
+    def fit(self, X, y=None):
         """
         Run the hyper-parameter optimization process
+
+        Parameters
+        ----------
+        X : array-like, shape = [n_samples, n_features]
+            Training vector, where n_samples in the number of samples and
+            n_features is the number of features.
+
+        y : array-like, shape = [n_samples] or [n_samples, n_output], optional
+            Target relative to X for classification or regression;
+            None for unsupervised learning.
 
         Returns
         -------
@@ -325,19 +321,21 @@ class GPSearchCV(object):
         n_tested_parameters = 0
         tested_parameters = np.zeros((self.n_iter, self.n_parameters))
         cv_scores = np.zeros(self.n_iter)
+        if not self._callable_estimator:
+            self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
 
         #  Initialize with random candidates  #
         init_candidates = sample_candidates(
-            self.n_init, self.param_bounds, self.param_isInt)
+            self.n_init, self.param_bounds, self.param_is_int)
         self.n_init = init_candidates.shape[0]
 
         for i in range(self.n_init):
-            dict_candidate = self.vector_to_dict(init_candidates[i, :])
-            cv_score = self.score(dict_candidate)
+            dict_candidate = self._vector_to_dict(init_candidates[i, :])
+            cv_score = self._evaluate_params(X, y, dict_candidate)
 
-            if(self.verbose):
-                print ('Step ' + str(i) + ' - Hyperparameter '
-                       + str(dict_candidate) + ' ' + str(cv_score))
+            if self.verbose > 0:
+                print('Step ' + str(i) + ' - Hyperparameter '
+                      + str(dict_candidate) + ' ' + str(cv_score))
 
             is_in, idx = is_in_ndarray(
                 init_candidates[i, :],
@@ -348,18 +346,14 @@ class GPSearchCV(object):
                 cv_scores[n_tested_parameters] = cv_score
                 n_tested_parameters += 1
             else:
-                if(self.verbose):
+                if self.verbose > 0:
                     print('Hyperparameter already tesed')
                 cv_scores[idx] = (cv_scores[idx] + cv_score) / 2.
 
         for i in range(self.n_iter-self.n_init):
 
             # Model with a Gaussian Process
-            gp = GaussianProcess(theta0=1. * np.ones(self.n_parameters),
-                                 thetaL=0.001 * np.ones(self.n_parameters),
-                                 thetaU=10. * np.ones(self.n_parameters),
-                                 random_start=3,
-                                 nugget=self.gp_nugget)
+            gp = GaussianProcessRegressor(**self.gp_params)
             gp.fit(tested_parameters[:n_tested_parameters, :],
                    cv_scores[:n_tested_parameters])
 
@@ -367,27 +361,27 @@ class GPSearchCV(object):
             # acquisition values
             candidates = sample_candidates(self.n_candidates,
                                            self.param_bounds,
-                                           self.param_isInt)
-            if(self.acquisition_function == 'UCB'):
-                predictions, MSE = gp.predict(candidates, eval_MSE=True)
-                upperBound = predictions + 1.96*np.sqrt(MSE)
+                                           self.param_is_int)
+            if self.acquisition_function == 'UCB':
+                predictions, std = gp.predict(candidates, return_std=True)
+                upperBound = predictions + 1.96 * std
                 best_candidate = candidates[np.argmax(upperBound)]
 
-            elif(self.acquisition_function == 'EI'):
-                predictions, MSE = gp.predict(candidates, eval_MSE=True)
+            elif self.acquisition_function == 'EI':
+                predictions, std = gp.predict(candidates, return_std=True)
                 y_best = np.max(cv_scores)
-                ei = compute_ei(predictions, np.sqrt(MSE), y_best)
+                ei = compute_ei(predictions, std, y_best)
                 best_candidate = candidates[np.argmax(ei)]
 
             else:
                 print('WARNING : acquisition_function not implemented yet : '
                       + self.acquisition_function)
 
-            dict_candidate = self.vector_to_dict(best_candidate)
-            cv_score = self.score(dict_candidate)
-            if(self.verbose):
-                print ('Step ' + str(i+self.n_init) + ' - Hyperparameter '
-                       + str(dict_candidate) + ' ' + str(cv_score))
+            dict_candidate = self._vector_to_dict(best_candidate)
+            cv_score = self._evaluate_params(X, y, dict_candidate)
+            if self.verbose > 0:
+                print('Step ' + str(i+self.n_init) + ' - Hyperparameter '
+                      + str(dict_candidate) + ' ' + str(cv_score))
 
             is_in, idx = is_in_ndarray(
                 best_candidate,
@@ -397,24 +391,34 @@ class GPSearchCV(object):
                 cv_scores[n_tested_parameters] = cv_score
                 n_tested_parameters += 1
             else:
-                if(self.verbose):
+                if self.verbose > 0:
                     print('Hyperparameter already tesed')
                 cv_scores[idx] = (cv_scores[idx] + cv_score) / 2.
 
         best_idx = np.argmax(cv_scores[:n_tested_parameters])
         vector_best_param = tested_parameters[best_idx]
-        best_parameter = self.vector_to_dict(vector_best_param)
+        best_parameter = self._vector_to_dict(vector_best_param)
 
         # store
-        self.best_parameter_ = best_parameter
+        self.best_params_ = best_parameter
         self.tested_parameters_ = tested_parameters[:n_tested_parameters, :]
-        self.cv_scores_ = cv_scores[:n_tested_parameters]
+        self.scores_ = cv_scores[:n_tested_parameters]
 
-        if(self.verbose):
-            print ('\nTested ' + str(n_tested_parameters) + ' parameters')
-            print ('Max cv score ' + str(cv_scores[best_idx]))
-            print ('Best parameter ' + str(tested_parameters[best_idx]))
-            print (best_parameter)
+        if self.verbose > 0:
+            print('\nTested ' + str(n_tested_parameters) + ' parameters')
+            print('Max cv score ' + str(cv_scores[best_idx]))
+            print('Best parameter ' + str(tested_parameters[best_idx]))
+            print(best_parameter)
 
-        return tested_parameters[:n_tested_parameters, :], \
-            cv_scores[:n_tested_parameters]
+        if self.refit:
+            # fit the best estimator using the entire dataset
+            # clone first to work around broken estimators
+            best_estimator = clone(self.estimator).set_params(
+                **best_parameter)
+            if y is not None:
+                best_estimator.fit(X, y, **self.fit_params)
+            else:
+                best_estimator.fit(X, **self.fit_params)
+            self.best_estimator_ = best_estimator
+
+        return self
