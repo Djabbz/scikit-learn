@@ -18,7 +18,6 @@ def extend_result(n_tests, tmp_res):
     l = len(tmp_res) - 1
     for i in range(n_tests):
         res[i] = tmp_res[min(i, l)]
-
     return res
 
 
@@ -170,47 +169,59 @@ def gp_vs_random_search(test_name, n_tests, search_lenght, save_data=False):
     for i in range(n_tests):
         ucb_search = GPSearchCV(parameters, estimator=pipeline, X=X, y=y,
                                 acquisition_function='UCB',
-                                n_iter=n_iter_search, n_init=20, verbose=False)
-        _, scores = ucb_search._fit()
+                                n_iter=n_iter_search, 
+                                n_init=20, 
+                                verbose=False).fit(data.data, data.target)
 
+        scores = None  #tmp
         max_scores = [scores[0]]
         print 'Test', i, '-', len(scores), 'parameters tested'
 
         for j in range(1, len(scores)):
             max_scores.append(max(max_scores[j-1], scores[j]))
         all_gp_ucb_results.append(extend_result(n_iter_search, max_scores))
+
     all_gp_ucb_results = np.asarray(all_gp_ucb_results)
     print all_gp_ucb_results.shape
     if(save_data):
         np.savetxt('gp_ucb_scores.csv', all_gp_ucb_results, delimiter=',')
 
-    # # GP EI search
-    # all_gp_ei_results = []
-    # print 'GP_ei search'
-    # for i in range(n_tests):
-    #   ei_search = GPSearchCV(parameters,estimator=pipeline,X=X,y=y,
-    #                       acquisition_function='EI',
-    #                       n_iter=n_iter_search, n_init=20, verbose=False)
-    #   _,scores = ei_search._fit()
+    # GP EI search
+    all_gp_ei_results = []
+    print('GP_ei search')
+    
+    for i in range(n_tests):
+        ei_search = GPSearchCV(pipeline, parameters,
+                               acquisition_function='EI',
+                               n_iter=n_iter_search, 
+                               n_init=20, 
+                               verbose=False).fit(data.data, data.target)
+      
+        scores = None  # TMP
+  
+        max_scores = [scores[0]]
+        print('Test',i,'-',len(scores),'parameters tested')
+  
+        for j in range(1,len(scores)):
+            max_scores.append(max(max_scores[j-1],scores[j]))
+        all_gp_ei_results.append(extend_result(n_iter_search,max_scores))
 
-    #   max_scores = [scores[0]]
-    #   print 'Test',i,'-',len(scores),'parameters tested'
+    all_gp_ei_results = np.asarray(all_gp_ei_results)
+    print(all_gp_ei_results.shape)
 
-    #   for j in range(1,len(scores)):
-    #       max_scores.append(max(max_scores[j-1],scores[j]))
-    #   all_gp_ei_results.append(extend_result(n_iter_search,max_scores))
-    # all_gp_ei_results = np.asarray(all_gp_ei_results)
-    # print all_gp_ei_results.shape
-    # if(save_data):
-    #   np.savetxt('gp_ei_scores.csv',all_gp_ei_results,delimiter=',')
+    if(save_data):
+        np.savetxt('gp_ei_scores.csv',all_gp_ei_results,delimiter=',')
 
     # Randomized search
     print 'Random search'
     all_random_results = []
     for i in range(n_tests):
-        random_search = GPSearchCV(parameters, estimator=pipeline, X=X, y=y,
-                                   n_iter=n_iter_search, n_init=n_iter_search, verbose=False)
-        _, scores = random_search._fit()
+        random_search = GPSearchCV(parameters, pipeline,
+                                   n_iter=n_iter_search, 
+                                   n_init=n_iter_search, 
+                                   verbose=False).fit(data.data, data.target)
+
+        scores = None  # TMP
 
         max_scores = [scores[0]]
         print 'Test', i, '-', len(scores), 'parameters tested'
@@ -219,11 +230,12 @@ def gp_vs_random_search(test_name, n_tests, search_lenght, save_data=False):
             max_scores.append(max(max_scores[j-1], scores[j]))
         all_random_results.append(extend_result(n_iter_search, max_scores))
     all_random_results = np.asarray(all_random_results)
+
     if(save_data):
         np.savetxt('rand_scores.csv', all_random_results, delimiter=',')
 
     plt.figure()
-    # plt.plot(range(n_iter_search),np.mean(all_gp_ei_results,axis=0),'r',label='GP-EI')
+    plt.plot(range(n_iter_search),np.mean(all_gp_ei_results,axis=0),'r',label='GP-EI')
     plt.plot(range(n_iter_search), np.mean(all_gp_ucb_results, axis=0), 'b', label='GP-UCB')
     plt.plot(range(n_iter_search), np.mean(all_random_results, axis=0), 'g', label='Random')
     plt.legend(loc=4)
@@ -235,12 +247,15 @@ def gp_vs_random_search(test_name, n_tests, search_lenght, save_data=False):
 
 if __name__ == "__main__":
 
-    print 'Routine Test'
-    test2()
-    test1()
+    # print 'Routine Test'
+    # test2()
+    # test1()
 
-    # test_name = 'text'
-    # n_tests = 20
-    # search_lenght = 60
-    # print '\nTest GP vs Random on',test_name,'dataset - Average on',n_tests,'trials'
-    # gp_vs_random_search(test_name,n_tests,search_lenght,save_data=True)
+    test_name = 'text'
+    test_name = 'iris'
+    n_tests = 20
+    n_tests = 10
+    search_length = 60
+    search_length = 10
+    print('\nTest GP vs Random on',test_name,'dataset - Average on',n_tests,'trials')
+    gp_vs_random_search(test_name,n_tests,search_length,save_data=True)
