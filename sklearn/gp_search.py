@@ -40,10 +40,10 @@ def sample_candidates(n_candidates, param_bounds, param_isInt):
     candidates = np.asarray(candidates)
     candidates = candidates.T
 
-    return compute_unique(candidates)
+    return unique_rows(candidates)
 
 
-def compute_ei(predictions, sigma, y_best):
+def compute_expected_improvement(predictions, sigma, y_best):
     ei_array = np.zeros(predictions.shape[0])
     for i in range(ei_array.shape[0]):
         z = (y_best - predictions[i]) / sigma[i]
@@ -52,17 +52,17 @@ def compute_ei(predictions, sigma, y_best):
     return ei_array
 
 
-def compute_unique(a):
-    # keep only unique values in the ndarray a
+def unique_rows(ar):
+    # keep only unique values in the ndarray ar
     # http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
 
-    b = np.ascontiguousarray(a).view(
-        np.dtype((np.void, a.dtype.itemsize * a.shape[1]))
+    b = np.ascontiguousarray(ar).view(
+        np.dtype((np.void, ar.dtype.itemsize * ar.shape[1]))
         )
     _, idx = np.unique(b, return_index=True)
     idx = np.sort(idx)
 
-    return a[idx]
+    return ar[idx]
 
 
 def is_in_ndarray(item, a):
@@ -89,6 +89,14 @@ class GPSearchCV(BaseSearchCV):
     Parameters
     ----------
 
+    estimator : 1) sklearn estimator or 2) callable
+        1 : object type that implements the "fit" and "predict" methods,
+        as a classifier or a pipeline
+        2 : a function that computes the output given a dictionnary of
+        parameters. The returned value should be a list of one or more
+        floats if score_format == 'cv', and a float if score_format ==
+        'avg'
+
     parameters : dict, parameter space on which to optimize the estimator
         The keys of the dictionnary should be the names of the parameters,
         and the values should be lists of length 2; the first element being
@@ -100,22 +108,14 @@ class GPSearchCV(BaseSearchCV):
                                  'd' : ['int', [1,3]],
                                  'C' : ['float',[1,10])}
 
-    estimator : 1) sklearn estimator or 2) callable
-        1 : object type that implements the "fit" and "predict" methods,
-        as a classifier or a pipeline
-        2 : a function that computes the output given a dictionnary of
-        parameters. The returned value should be a list of one or more
-        floats if score_format == 'cv', and a float if score_format ==
-        'avg'
-
-    fit_params : dict, optional
-        Parameters to pass to the fit method.
-
     scoring : string, callable or None, optional
         A string (see sklearn's model evaluation documentation) or
         a scorer callable object / function with signature
         ``scorer(estimator, X, y)``.
         Default is None.
+
+    fit_params : dict, optional
+        Parameters to pass to the fit method.
 
     cv : integer or cross-validation generator, optional
         Relevant if the estimator is an sklearn object.
@@ -210,6 +210,8 @@ class GPSearchCV(BaseSearchCV):
         self.n_candidates = n_candidates
         self.gp_params = gp_params
         self.param_names = list(parameters.keys())
+
+        # FIXME: 
         self.param_is_int = np.array([0 if (parameters[k][0] == 'float')
                                      else 1 for k in self.param_names])
         self.param_bounds = np.zeros((self.n_parameters, 2))
@@ -370,7 +372,7 @@ class GPSearchCV(BaseSearchCV):
             elif self.acquisition_function == 'EI':
                 predictions, std = gp.predict(candidates, return_std=True)
                 y_best = np.max(cv_scores)
-                ei = compute_ei(predictions, std, y_best)
+                ei = compute_expected_improvement(predictions, std, y_best)
                 best_candidate = candidates[np.argmax(ei)]
 
             else:
