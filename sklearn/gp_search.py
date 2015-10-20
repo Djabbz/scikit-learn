@@ -175,10 +175,8 @@ class GPSearchCV(BaseSearchCV):
 
     >>> search = GPSearchCV(parameters,
                             estimator=clf,
-                            X=X,
-                            y=y,
                             n_iter=20)
-    >>> search._fit()
+    >>> search.fit(X, y)
 
     """
 
