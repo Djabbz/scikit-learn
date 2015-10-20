@@ -92,7 +92,7 @@ def test_grid_search_no_score():
     gp_search.fit(X, y)
 
     grid_search_no_score = GPSearchCV(clf_no_score, {'C': Cs},
-                                        scoring='accuracy')
+                                      scoring='accuracy')
     # smoketest grid search
     grid_search_no_score.fit(X, y)
 

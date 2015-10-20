@@ -84,7 +84,6 @@ def is_in_ndarray(item, a):
     return True, idx_val[0]
 
 
-
 class GPSearchCV(BaseSearchCV):
     """
     Parameters
@@ -108,14 +107,6 @@ class GPSearchCV(BaseSearchCV):
         parameters. The returned value should be a list of one or more
         floats if score_format == 'cv', and a float if score_format ==
         'avg'
-
-    X : array-like, shape = [n_samples, n_features]
-        Training vector, where n_samples in the number of samples and
-        n_features is the number of features.
-
-    y : array-like, shape = [n_samples] or [n_samples, n_output], optional
-        Target relative to X for classification or regression;
-        None for unsupervised learning.
 
     fit_params : dict, optional
         Parameters to pass to the fit method.
@@ -309,6 +300,16 @@ class GPSearchCV(BaseSearchCV):
     def fit(self, X, y=None):
         """
         Run the hyper-parameter optimization process
+
+        Parameters
+        ----------
+        X : array-like, shape = [n_samples, n_features]
+            Training vector, where n_samples in the number of samples and
+            n_features is the number of features.
+
+        y : array-like, shape = [n_samples] or [n_samples, n_output], optional
+            Target relative to X for classification or regression;
+            None for unsupervised learning.
 
         Returns
         -------
