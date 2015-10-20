@@ -18,13 +18,12 @@ from .base import is_classifier, clone
 from .grid_search import BaseSearchCV
 
 
-def sample_candidates(n_candidates, param_bounds, param_isInt):
-
-    n_parameters = param_isInt.shape[0]
+def _sample_candidates(n_candidates, param_bounds, param_is_int):
+    n_parameters = param_is_int.shape[0]
     candidates = []
 
     for k in range(n_parameters):
-        if param_isInt[k]:
+        if param_is_int[k]:
             k_sample = np.asarray(
                 np.random.rand(n_candidates)
                 * np.float(param_bounds[k][1]-param_bounds[k][0])
@@ -37,9 +36,7 @@ def sample_candidates(n_candidates, param_bounds, param_isInt):
                 + param_bounds[k][0])
         candidates.append(k_sample)
 
-    candidates = np.asarray(candidates)
-    candidates = candidates.T
-
+    candidates = np.asarray(candidates).T
     return unique_rows(candidates)
 
 
@@ -326,9 +323,8 @@ class GPSearchCV(BaseSearchCV):
         if not self._callable_estimator:
             self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
 
-        #  Initialize with random candidates  #
-        init_candidates = sample_candidates(
-            self.n_init, self.param_bounds, self.param_is_int)
+        #  Initialize with random candidates
+        init_candidates = _sample_candidates(self.n_init, self.param_bounds, self.param_is_int)
         self.n_init = init_candidates.shape[0]
 
         for i in range(self.n_init):
@@ -362,7 +358,7 @@ class GPSearchCV(BaseSearchCV):
 
             # Sample candidates and predict their corresponding
             # acquisition values
-            candidates = sample_candidates(self.n_candidates,
+            candidates = _sample_candidates(self.n_candidates,
                                            self.param_bounds,
                                            self.param_is_int)
             if self.acquisition_function == 'UCB':

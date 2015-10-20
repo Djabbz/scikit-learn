@@ -37,7 +37,7 @@ def extend_result(n_tests, tmp_res):
 
 
 
-if(test_name == 'iris'):
+if test_name == 'iris':
     iris = load_digits()
     X, y = iris.data, iris.target
     pipeline = RandomForestClassifier()
@@ -50,7 +50,7 @@ if(test_name == 'iris'):
                   "bootstrap": ['cat', [True, False]],
                   "criterion": ['cat', ["gini", "entropy"]]}
 
-elif(test_name == 'text'):
+elif test_name == 'text':
     # Display progress logs on stdout
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s %(levelname)s %(message)s')
@@ -116,7 +116,7 @@ for i in range(n_tests):
 
 all_gp_ucb_results = np.asarray(all_gp_ucb_results)
 print(all_gp_ucb_results.shape)
-if(save_data):
+if save_data:
     np.savetxt('gp_ucb_scores.csv', all_gp_ucb_results, delimiter=',')
 
 # GP EI search
@@ -161,7 +161,7 @@ for i in range(n_tests):
     all_random_results.append(extend_result(n_iter_search, max_scores))
 all_random_results = np.asarray(all_random_results)
 
-if(save_data):
+if save_data:
     np.savetxt('rand_scores.csv', all_random_results, delimiter=',')
 
 plt.figure()
