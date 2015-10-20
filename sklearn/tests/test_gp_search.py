@@ -1,5 +1,5 @@
 """
-Testing for grid search module (sklearn.grid_search)
+Testing for GP search module (sklearn.gp_search)
 
 """
 
@@ -52,6 +52,7 @@ class MockDiscreteClassifier(object):
     def set_params(self, **params):
         self.foo_param = params['foo_param']
         return self
+
 
 
 class MockContinuousClassifier(object):
@@ -183,4 +184,3 @@ def test_n_iter_smaller_n_iter():
     grid_search = GPSearchCV(clf, parameters, n_iter=5,
         n_init=20)
     grid_search.fit(X, y)
-
