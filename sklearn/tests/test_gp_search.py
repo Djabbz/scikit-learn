@@ -64,17 +64,17 @@ def test_gp_search():
     clf = MockClassifier()
     gp_search = GPSearchCV(clf, {'foo_param': [1, 2, 3]}, verbose=3)
     # make sure it selects the smallest parameter in case of ties
-    # old_stdout = sys.stdout
-    # sys.stdout = StringIO()
-    # gp_search.fit(X, y)
-    # sys.stdout = old_stdout
-    # assert_equal(gp_search.best_estimator_.foo_param, 2)
+    old_stdout = sys.stdout
+    sys.stdout = StringIO()
+    gp_search.fit(X, y)
+    sys.stdout = old_stdout
+    assert_equal(gp_search.best_estimator_.foo_param, 2)
 
-    # # Smoke test the score etc:
-    # gp_search.score(X, y)
-    # gp_search.predict_proba(X)
-    # gp_search.decision_function(X)
-    # gp_search.transform(X)
+    # Smoke test the score etc:
+    gp_search.score(X, y)
+    gp_search.predict_proba(X)
+    gp_search.decision_function(X)
+    gp_search.transform(X)
 
     # Test exception handling on scoring
     gp_search.scoring = 'sklearn'
