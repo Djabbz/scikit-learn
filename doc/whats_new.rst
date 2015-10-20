@@ -22,7 +22,7 @@ New features
      sampling of functions from GP prior and GP posterior. Extensive documentation and 
      examples are provided. By `Jan Hendrik Metzen`_.
 
-   - Gaussian Process-based hyper-parameter optimization, by Sébastien Dubois, Djalel Benbouzid and Fabian Pedregosa.
+   - Gaussian Process-based hyper-parameter optimization through :class:`gp_search.GPSearchCV`, by Sébastien Dubois, Djalel Benbouzid and Fabian Pedregosa.
 
 
 Enhancements
