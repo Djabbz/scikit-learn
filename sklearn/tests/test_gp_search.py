@@ -12,8 +12,11 @@ from sklearn.utils.testing import assert_equal, assert_raises,\
     ignore_warnings, assert_raise_message, assert_almost_equal
 from sklearn.svm import LinearSVC
 from sklearn.utils.testing import assert_true
-from sklearn.datasets import make_blobs, make_classification
+from sklearn.datasets import make_blobs, make_classification,\
+    load_iris
 from sklearn.gp_search import GPSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
 
 
 # Neither of the following two estimators inherit from BaseEstimator,
@@ -164,4 +167,20 @@ def test_grid_search_error():
     clf = LinearSVC()
     cv = GPSearchCV(clf, {'C': [0.1, 1.0]})
     assert_raises(IndexError, cv.fit, X_[:180], y_)
+
+def test_n_iter_smaller_n_iter():
+    # failing test that happens when n_iter < n_init.
+    iris = load_iris()
+    X, y = iris.data, iris.target
+
+    parameters = {"max_depth": ['int', [3, 3]],
+                  "max_features": ['int', [1, 4]],
+                  "min_samples_split": ['int', [1, 11]],
+                  "min_samples_leaf": ['int', [1, 11]],
+                  "bootstrap": ['cat', [True, False]],
+                  "criterion": ['cat', ["gini", "entropy"]]}
+    clf = RandomForestClassifier()
+    grid_search = GPSearchCV(clf, parameters, n_iter=5,
+        n_init=20)
+    grid_search.fit(X, y)
 
