@@ -127,7 +127,7 @@ for i in range(n_tests):
     ei_search = GPSearchCV(pipeline, parameters,
                            acquisition_function='EI',
                            n_iter=n_iter_search, 
-                           n_init=20, 
+                           n_init=n_init, 
                            verbose=False).fit(X, y)
   
     scores = ei_search.scores_
@@ -147,9 +147,9 @@ print(all_gp_ei_results.shape)
 print('Random search')
 all_random_results = []
 for i in range(n_tests):
-    random_search = RandomizedSearchCV(
+    random_search = GPSearchCV(
         pipeline, parameters, n_iter=n_iter_search,
-        n_init=n_iter_search, verbose=False).fit(X, y)
+        n_init=n_init, verbose=False).fit(X, y)
 
     scores = random_search.scores_
 
