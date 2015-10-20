@@ -237,9 +237,6 @@ class GPSearchCV(BaseSearchCV):
         else:
             self._callable_estimator = False
 
-        if not self._callable_estimator:
-            self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
-
         # init param_bounds
         for i in range(self.n_parameters):
             if parameters[self.param_names[i]][0] == 'cat':
@@ -294,8 +291,10 @@ class GPSearchCV(BaseSearchCV):
             cv_score = [_fit_and_score(
                 clone(self.estimator), X, y, self.scorer_,
                 train, test, False, params,
-                self.fit_params, return_parameters=True)
+                self.fit_params, return_parameters=True,
+                error_score='raise')
                 for train, test in cv]
+
 
             n_test_samples = 0
             score = 0
@@ -309,7 +308,6 @@ class GPSearchCV(BaseSearchCV):
             score = self.estimator(params)
 
         return score
-
 
     def fit(self, X, y=None):
         """
@@ -325,6 +323,8 @@ class GPSearchCV(BaseSearchCV):
         n_tested_parameters = 0
         tested_parameters = np.zeros((self.n_iter, self.n_parameters))
         cv_scores = np.zeros(self.n_iter)
+        if not self._callable_estimator:
+            self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
 
         #  Initialize with random candidates  #
         init_candidates = sample_candidates(
@@ -337,7 +337,7 @@ class GPSearchCV(BaseSearchCV):
 
             if self.verbose > 0:
                 print('Step ' + str(i) + ' - Hyperparameter '
-                       + str(dict_candidate) + ' ' + str(cv_score))
+                      + str(dict_candidate) + ' ' + str(cv_score))
 
             is_in, idx = is_in_ndarray(
                 init_candidates[i, :],
@@ -383,7 +383,7 @@ class GPSearchCV(BaseSearchCV):
             cv_score = self._evaluate_params(X, y, dict_candidate)
             if self.verbose > 0:
                 print('Step ' + str(i+self.n_init) + ' - Hyperparameter '
-                       + str(dict_candidate) + ' ' + str(cv_score))
+                      + str(dict_candidate) + ' ' + str(cv_score))
 
             is_in, idx = is_in_ndarray(
                 best_candidate,
