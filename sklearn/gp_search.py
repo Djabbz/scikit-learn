@@ -255,7 +255,6 @@ class GPSearchCV(BaseSearchCV):
             print(self.param_is_int)
             print(self.param_bounds)
 
-
     def _vector_to_dict(self, vector_parameter):
         dict_parameter = dict.fromkeys(self.param_names)
         for i in range(self.n_parameters):
@@ -269,7 +268,6 @@ class GPSearchCV(BaseSearchCV):
                 dict_parameter[self.param_names[i]] = vector_parameter[i]
 
         return dict_parameter
-
 
     def _evaluate_params(self, X, y, params):
         """
@@ -294,7 +292,6 @@ class GPSearchCV(BaseSearchCV):
                 self.fit_params, return_parameters=True,
                 error_score='raise')
                 for train, test in cv]
-
 
             n_test_samples = 0
             score = 0

@@ -81,28 +81,28 @@ def test_gp_search():
     assert_raises(ValueError, gp_search.fit, X, y)
 
 
-# @ignore_warnings
-# def test_grid_search_no_score():
-#     # Test grid-search on classifier that has no score function.
-#     clf = LinearSVC(random_state=0)
-#     X, y = make_blobs(random_state=0, centers=2)
-#     Cs = [.1, 1, 10]
-#     clf_no_score = LinearSVCNoScore(random_state=0)
-#     gp_search = GPSearchCV(clf, {'C': Cs}, scoring='accuracy')
-#     gp_search.fit(X, y)
+@ignore_warnings
+def test_grid_search_no_score():
+    # Test grid-search on classifier that has no score function.
+    clf = LinearSVC(random_state=0)
+    X, y = make_blobs(random_state=0, centers=2)
+    Cs = [.1, 1, 10]
+    clf_no_score = LinearSVCNoScore(random_state=0)
+    gp_search = GPSearchCV(clf, {'C': Cs}, scoring='accuracy')
+    gp_search.fit(X, y)
 
-#     grid_search_no_score = GPSearchCV(clf_no_score, {'C': Cs},
-#                                         scoring='accuracy')
-#     # smoketest grid search
-#     grid_search_no_score.fit(X, y)
+    grid_search_no_score = GPSearchCV(clf_no_score, {'C': Cs},
+                                        scoring='accuracy')
+    # smoketest grid search
+    grid_search_no_score.fit(X, y)
 
-#     # check that best params are equal
-#     assert_equal(grid_search_no_score.best_params_, gp_search.best_params_)
-#     # check that we can call score and that it gives the correct result
-#     assert_equal(gp_search.score(X, y), grid_search_no_score.score(X, y))
+    # check that best params are equal
+    assert_equal(grid_search_no_score.best_params_, gp_search.best_params_)
+    # check that we can call score and that it gives the correct result
+    assert_equal(gp_search.score(X, y), grid_search_no_score.score(X, y))
 
-#     # giving no scoring function raises an error
-#     grid_search_no_score = GPSearchCV(clf_no_score, {'C': Cs})
-#     assert_raise_message(TypeError, "no scoring", grid_search_no_score.fit,
-#                          [[1]])
+    # giving no scoring function raises an error
+    grid_search_no_score = GPSearchCV(clf_no_score, {'C': Cs})
+    assert_raise_message(TypeError, "no scoring", grid_search_no_score.fit,
+                         [[1]])
 
