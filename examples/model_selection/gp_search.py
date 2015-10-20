@@ -141,17 +141,14 @@ for i in range(n_tests):
 all_gp_ei_results = np.asarray(all_gp_ei_results)
 print(all_gp_ei_results.shape)
 
-if(save_data):
-    np.savetxt('gp_ei_scores.csv',all_gp_ei_results,delimiter=',')
 
 # Randomized search
 print('Random search')
 all_random_results = []
 for i in range(n_tests):
-    random_search = GPSearchCV(pipeline, parameters,
-                               n_iter=n_iter_search, 
-                               n_init=n_iter_search, 
-                               verbose=False).fit(X, y)
+    random_search = RandomizedSearchCV(
+        pipeline, parameters, n_iter=n_iter_search,
+        n_init=n_iter_search, verbose=False).fit(X, y)
 
     scores = random_search.scores_
 
