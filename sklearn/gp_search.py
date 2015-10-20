@@ -18,7 +18,6 @@ from .base import is_classifier, clone
 from .grid_search import BaseSearchCV
 
 
-
 def sample_candidates(n_candidates, param_bounds, param_isInt):
 
     n_parameters = param_isInt.shape[0]
@@ -167,7 +166,7 @@ class GPSearchCV(BaseSearchCV):
     Attributes
     ----------
 
-    best_parameter_ : dict, the parameter set, from those tested by the
+    best_params_ : dict, the parameter set, from those tested by the
         method _fit, that maximizes the mean of the cross-validation results.
 
     tested_parameters_ : ndarray, the parameters tested by _fit
@@ -227,7 +226,7 @@ class GPSearchCV(BaseSearchCV):
         self.fit_params = fit_params if fit_params is not None else {}
         self.cv = cv
 
-        self.best_parameter_ = None
+        self.best_params_ = None
         self.tested_parameters_ = None
         self.cv_scores_ = None
 
@@ -403,7 +402,7 @@ class GPSearchCV(BaseSearchCV):
         best_parameter = self._vector_to_dict(vector_best_param)
 
         # store
-        self.best_parameter_ = best_parameter
+        self.best_params_ = best_parameter
         self.tested_parameters_ = tested_parameters[:n_tested_parameters, :]
         self.scores_ = cv_scores[:n_tested_parameters]
 
