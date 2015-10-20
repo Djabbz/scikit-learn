@@ -19,9 +19,10 @@ Compare GP-based search vs random search on iris and text datasets.
 test_name = 'text'
 test_name = 'iris'
 n_tests = 20
-n_tests = 10
+# n_tests = 10
 n_iter_search = 60
-n_iter_search = 10
+# n_iter_search = 10
+n_init = 20
 save_data=True
 
 print('Test GP vs Random on ', test_name, 'dataset - Average on ', n_tests,' trials')
@@ -102,7 +103,7 @@ for i in range(n_tests):
     ucb_search = GPSearchCV(pipeline, parameters,
                             acquisition_function='UCB',
                             n_iter=n_iter_search, 
-                            n_init=20, 
+                            n_init=n_init, 
                             verbose=False).fit(X, y)
 
     scores = ucb_search.scores_  

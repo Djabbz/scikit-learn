@@ -345,6 +345,7 @@ class _CVScoreTuple (namedtuple('_CVScoreTuple',
     # Python interpreter that this subclass uses static __slots__ instead of
     # dynamic attributes. Furthermore we don't need any additional slot in the
     # subclass so we set __slots__ to the empty tuple.
+
     __slots__ = ()
 
     def __repr__(self):

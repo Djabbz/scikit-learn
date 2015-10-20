@@ -341,10 +341,11 @@ class GPSearchCV(BaseSearchCV):
 
             is_in, idx = is_in_ndarray(
                 init_candidates[i, :],
-                tested_parameters[:n_tested_parameters, :])
+                tested_parameters[:n_tested_parameters, :]
+            )
+
             if not is_in:
-                tested_parameters[n_tested_parameters, :] = \
-                    init_candidates[i, :]
+                tested_parameters[n_tested_parameters, :] = init_candidates[i, :]
                 cv_scores[n_tested_parameters] = cv_score
                 n_tested_parameters += 1
             else:
