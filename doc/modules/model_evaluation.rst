@@ -170,7 +170,7 @@ Here is an example of building custom scorers, and of using the
     >>> #  and predictions defined below.
     >>> loss  = make_scorer(my_custom_loss_func, greater_is_better=False)
     >>> score = make_scorer(my_custom_loss_func, greater_is_better=True)
-    >>> ground_truth = [1, 1]
+    >>> ground_truth = [[1, 1]]
     >>> predictions  = [0, 1]
     >>> from sklearn.dummy import DummyClassifier
     >>> clf = DummyClassifier(strategy='most_frequent', random_state=0)
@@ -352,6 +352,23 @@ In the multilabel case with binary label indicators: ::
   * See :ref:`example_feature_selection_plot_permutation_test_for_classification.py`
     for an example of accuracy score usage using permutations of
     the dataset.
+
+.. _cohen_kappa:
+
+Cohen's kappa
+-------------
+
+The function :func:`cohen_kappa_score` computes Cohen's kappa statistic.
+This measure is intended to compare labelings by different human annotators,
+not a classifier versus a ground truth.
+
+The kappa score (see docstring) is a number between -1 and 1.
+Scores above .8 are generally considered good agreement;
+zero or lower means no agreement (practically random labels).
+
+Kappa scores can be computed for binary or multiclass problems,
+but not for multilabel problems (except by manually computing a per-label score)
+and not for more than two annotators.
 
 .. _confusion_matrix:
 

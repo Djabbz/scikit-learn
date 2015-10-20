@@ -162,14 +162,17 @@ Classes
    :template: class.rst
 
    cross_validation.KFold
+   cross_validation.LabelKFold
+   cross_validation.LabelShuffleSplit
    cross_validation.LeaveOneLabelOut
    cross_validation.LeaveOneOut
    cross_validation.LeavePLabelOut
    cross_validation.LeavePOut
    cross_validation.PredefinedSplit
-   cross_validation.StratifiedKFold
    cross_validation.ShuffleSplit
+   cross_validation.StratifiedKFold
    cross_validation.StratifiedShuffleSplit
+
 
 .. autosummary::
    :toctree: generated/
@@ -288,6 +291,7 @@ Samples generator
    decomposition.SparseCoder
    decomposition.DictionaryLearning
    decomposition.MiniBatchDictionaryLearning
+   decomposition.LatentDirichletAllocation
 
 .. autosummary::
    :toctree: generated/
@@ -374,6 +378,31 @@ partial dependence
    ensemble.partial_dependence.plot_partial_dependence
 
 
+.. _exceptions_ref:
+
+:mod:`sklearn.exceptions`: Exceptions and warnings
+==================================================
+
+.. automodule:: sklearn.exceptions
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: sklearn
+
+.. autosummary::
+   :toctree: generated/
+   :template: class_without_init.rst
+
+   exceptions.NotFittedError
+   exceptions.ChangedBehaviorWarning
+   exceptions.ConvergenceWarning
+   exceptions.DataConversionWarning
+   exceptions.DataDimensionalityWarning
+   exceptions.EfficiencyWarning
+   exceptions.FitFailedWarning
+   exceptions.NonBLASDotWarning
+   exceptions.UndefinedMetricWarning
+
 .. _feature_extraction_ref:
 
 :mod:`sklearn.feature_extraction`: Feature Extraction
@@ -459,6 +488,7 @@ From text
    feature_selection.SelectKBest
    feature_selection.SelectFpr
    feature_selection.SelectFdr
+   feature_selection.SelectFromModel
    feature_selection.SelectFwe
    feature_selection.RFE
    feature_selection.RFECV
@@ -490,22 +520,30 @@ From text
   :toctree: generated/
   :template: class.rst
 
+  gaussian_process.GaussianProcessRegressor
+  gaussian_process.GaussianProcessClassifier
   gaussian_process.GaussianProcess
 
+Kernels:
+
 .. autosummary::
-   :toctree: generated
-   :template: function.rst
+  :toctree: generated/
+  :template: class.rst
 
-   gaussian_process.correlation_models.absolute_exponential
-   gaussian_process.correlation_models.squared_exponential
-   gaussian_process.correlation_models.generalized_exponential
-   gaussian_process.correlation_models.pure_nugget
-   gaussian_process.correlation_models.cubic
-   gaussian_process.correlation_models.linear
-   gaussian_process.regression_models.constant
-   gaussian_process.regression_models.linear
-   gaussian_process.regression_models.quadratic
-
+  gaussian_process.kernels.Kernel
+  gaussian_process.kernels.Sum
+  gaussian_process.kernels.Product
+  gaussian_process.kernels.Exponentiation
+  gaussian_process.kernels.ConstantKernel
+  gaussian_process.kernels.WhiteKernel
+  gaussian_process.kernels.RBF
+  gaussian_process.kernels.Matern
+  gaussian_process.kernels.RationalQuadratic
+  gaussian_process.kernels.ExpSineSquared
+  gaussian_process.kernels.DotProduct
+  gaussian_process.kernels.PairwiseKernel
+  gaussian_process.kernels.CompoundKernel
+  gaussian_process.kernels.Hyperparameter
 
 .. _grid_search_ref:
 
@@ -599,10 +637,10 @@ From text
 
 .. _lda_ref:
 
-:mod:`sklearn.lda`: Linear Discriminant Analysis
-================================================
+:mod:`sklearn.discriminant_analysis`: Discriminant Analysis
+===========================================================
 
-.. automodule:: sklearn.lda
+.. automodule:: sklearn.discriminant_analysis
    :no-members:
    :no-inherited-members:
 
@@ -614,7 +652,8 @@ From text
    :toctree: generated
    :template: class.rst
 
-   lda.LDA
+   discriminant_analysis.LinearDiscriminantAnalysis
+   discriminant_analysis.QuadraticDiscriminantAnalysis
 
 
 .. _learning_curve_ref:
@@ -884,6 +923,7 @@ See the :ref:`metrics` section of the user guide for further details.
    metrics.pairwise.pairwise_kernels
    metrics.pairwise.polynomial_kernel
    metrics.pairwise.rbf_kernel
+   metrics.pairwise.laplacian_kernel
    metrics.pairwise_distances
    metrics.pairwise_distances_argmin
    metrics.pairwise_distances_argmin_min
@@ -1104,6 +1144,7 @@ See the :ref:`metrics` section of the user guide for further details.
    :template: class.rst
 
    preprocessing.Binarizer
+   preprocessing.FunctionTransformer
    preprocessing.Imputer
    preprocessing.KernelCenterer
    preprocessing.LabelBinarizer
@@ -1130,24 +1171,6 @@ See the :ref:`metrics` section of the user guide for further details.
    preprocessing.robust_scale
    preprocessing.scale
 
-
-
-:mod:`sklearn.qda`: Quadratic Discriminant Analysis
-===================================================
-
-.. automodule:: sklearn.qda
-   :no-members:
-   :no-inherited-members:
-
-**User guide:** See the :ref:`lda_qda` section for further details.
-
-.. currentmodule:: sklearn
-
-.. autosummary::
-   :toctree: generated
-   :template: class.rst
-
-   qda.QDA
 
 .. _random_projection_ref:
 
