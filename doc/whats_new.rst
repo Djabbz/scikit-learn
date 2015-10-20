@@ -21,7 +21,10 @@ New features
      implementation supports kernel engineering, gradient-based hyperparameter optimization or 
      sampling of functions from GP prior and GP posterior. Extensive documentation and 
      examples are provided. By `Jan Hendrik Metzen`_.
- 
+
+   - Gaussian Process-based hyper-parameter optimization, by Sébastien Dubois, Djalel Benbouzid and Fabian Pedregosa.
+
+
 Enhancements
 ............
  
